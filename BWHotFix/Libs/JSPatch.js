@@ -21,7 +21,7 @@ var global = this;
         }
         return global[clsName]
     }
-    //2.调用defineClass
+    //2.调用defineClass 设置关联属性
     global.defineClass = function(declaration, properties, instMethods, clsMethods) {
         var newInstMethods = {}, newClsMethods = {}
         if (!(properties instanceof Array)) {

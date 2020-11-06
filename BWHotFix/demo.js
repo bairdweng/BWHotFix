@@ -1,4 +1,4 @@
-require("UIButton, UIColor","UIViewController");
+require("UIButton, UIColor","UIViewController","UITableView","UITableViewCell","TestViewController");
 defineClass("ViewController", {
     viewDidLoad: function() {
         self.super().viewDidLoad();
@@ -17,10 +17,19 @@ defineClass("ViewController", {
 }, {});
 
 // 这个是新的类
-defineClass("TestViewController2:UIViewController", {
+defineClass("TestViewController2:UIViewController<UITableViewDelegate,UITableViewDataSource>", {
     viewDidLoad: function() {
         self.super().viewDidLoad();
-        self.view().setBackgroundColor(UIColor.redColor());
+        
+        
+        var tableView = UITableView.alloc().initWithFrame(self.view().bounds());
+        tableView.setDelegate(self);
+        tableView.setDataSource(self);
+        tableView.registerClass_forCellReuseIdentifier(UITableViewCell.self(), "cell_id");
+        self.view().addSubview(tableView);
+        
+        
+        
         
         var textBtn = UIButton.alloc().initWithFrame({x:30, y:140, width:100, height:100});
         self.view().addSubview(textBtn);
@@ -28,9 +37,26 @@ defineClass("TestViewController2:UIViewController", {
         textBtn.addTarget_action_forControlEvents(self, "closePage", 1);
         self.view().setBackgroundColor(UIColor.greenColor());
     },
-   closePage: function() {
+    tableView_cellForRowAtIndexPath: function(tableView, indexPath) {
+        var cell = tableView.dequeueReusableCellWithIdentifier_forIndexPath("cell_id", indexPath);
+        cell.textLabel().setText("hello");
+        return cell;
+    },
+    tableView_didSelectRowAtIndexPath: function(tableView, indexPath) {
+        tableView.deselectRowAtIndexPath_animated(indexPath, YES);
+    },
+    numberOfSectionsInTableView: function(tableView) {
+        return 10;
+    },
+    tableView_numberOfRowsInSection: function(tableView, section) {
+        return 1;
+    },
+    tableView_heightForRowAtIndexPath: function(tableView, indexPath) {
+        return 60;
+    },
+    closePage: function() {
         self.dismissViewControllerAnimated_completion(YES, null);
-   }
+    }
 }, {});
 
 

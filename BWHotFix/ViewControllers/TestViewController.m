@@ -7,31 +7,51 @@
 
 #import "TestViewController.h"
 
-@interface TestViewController ()
+@interface TestViewController ()<UITableViewDelegate,UITableViewDataSource>
 
-@property(nonatomic,copy)NSString *showText;
-
+@property(nonatomic, copy)NSString *showText;
+@property(nonatomic, weak)UITableView *dataTableView;
 @end
 
 @implementation TestViewController
 
 
-
+static NSString *cellID = @"test_cell_id";
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.showText = @"show text";
+    
+    UITableView *tableView = [[UITableView alloc]initWithFrame:self.view.bounds];
+    tableView.delegate = self;
+    tableView.dataSource = self;
+    [tableView registerClass:UITableViewCell.self forCellReuseIdentifier:cellID];
+    [self.view addSubview: tableView];
+  
+    
     // Do any additional setup after loading the view.
 }
 
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
+-(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellID forIndexPath:indexPath];
+    cell.textLabel.text = @"hello";
+    return cell;
 }
-*/
+
+-(NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return  10;
+}
+
+- (NSInteger)tableView:(nonnull UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return  1;
+}
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
+
+-(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return 60;
+}
 
 @end
