@@ -6,6 +6,7 @@
 //
 
 #import "ViewController.h"
+#import "ExampleRuntime.h"
 
 @interface ViewController ()
 // 看看属性怎么hook
@@ -26,9 +27,11 @@
 }
 
 - (void)handleBtn {
-    NSLog(@"handleBtn handleBtn handleBtn:%@",self.showText);
-    UIViewController *nextVc = [[UIViewController alloc]init];
-    [self presentViewController:nextVc animated:YES completion:nil];
+//    NSLog(@"handleBtn handleBtn handleBtn:%@",self.showText);
+//    UIViewController *nextVc = [[UIViewController alloc]init];
+//    [self presentViewController:nextVc animated:YES completion:nil];
+    ExampleRuntime *runtime = [[ExampleRuntime alloc]init];
+    [runtime pushRuntimeVc:self];
 }
 
 @end

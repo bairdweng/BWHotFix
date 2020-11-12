@@ -315,7 +315,7 @@ static char *methodTypesInProtocol(NSString *protocolName,
                   obj == _nilObj ? nil : (obj == _nullObj ? [NSNull null] : obj));
         }
     };
-    #pragma mark 2.--设置关联属性
+#pragma mark 2.--设置关联属性
     context[@"_OC_getCustomProps"] = ^id(JSValue *obj) {
         id realObj = formatJSToOC(obj);
         return objc_getAssociatedObject(realObj, kPropAssociatedObjectKey);
@@ -354,9 +354,8 @@ static char *methodTypesInProtocol(NSString *protocolName,
     NSString *script = [NSString stringWithContentsOfFile:filePath
                                                  encoding:NSUTF8StringEncoding
                                                     error:nil];
-    return
-    [self _evaluateScript:script
-            withSourceURL:[NSURL URLWithString:[filePath lastPathComponent]]];
+    return [self _evaluateScript:script
+                   withSourceURL:[NSURL URLWithString:[filePath lastPathComponent]]];
 }
 # pragma mark -3.修复的js文件调用
 + (JSValue *)_evaluateScript:(NSString *)script
@@ -1211,6 +1210,8 @@ static NSDictionary *defineClass(NSString *classDeclaration,
 # pragma mark -5.重写方法的实现
 static void overrideMethod(Class cls, NSString *selectorName, JSValue *function,
                            BOOL isClassMethod, const char *typeDescription) {
+    
+    
     // 通过字符串获取SEL
     SEL selector = NSSelectorFromString(selectorName);
     // 没有类型签名的时候获取原来的方法的类型签名
@@ -1691,64 +1692,64 @@ break;                                                                     \
     
     // 如果 jsval 没有 isPerformInOC，那么就是执行完 js 方法后直接往下走
     switch (returnType[0] == 'r' ? returnType[1] : returnType[0]) {
-#define JP_FWD_RET_CALL_JS                                                     \
-JSValue *jsval;                                                              \
-[_JSMethodForwardCallLock lock];                                             \
-jsval = [jsFunc callWithArguments:params];                                   \
-[_JSMethodForwardCallLock unlock];                                           \
-while (![jsval isNull] && ![jsval isUndefined] &&                            \
-[jsval hasProperty:@"__isPerformInOC"]) {                             \
-NSArray *args = nil;                                                       \
-JSValue *cb = jsval[@"cb"];                                                \
-if ([jsval hasProperty:@"sel"]) {                                          \
-id callRet = callSelector(                                               \
-![jsval[@"clsName"] isUndefined] ? [jsval[@"clsName"] toString]      \
-: nil,                              \
-[jsval[@"sel"] toString], jsval[@"args"],                            \
-![jsval[@"obj"] isUndefined] ? jsval[@"obj"] : nil, NO);             \
-args = @[ [_context[@"_formatOCToJS"]                                    \
-callWithArguments:callRet ? @[ callRet ]                             \
-: _formatOCToJSList(@[ _nilObj ])] ];      \
-}                                                                          \
-[_JSMethodForwardCallLock lock];                                           \
-jsval = [cb callWithArguments:args];                                       \
-[_JSMethodForwardCallLock unlock];                                         \
-}
-            
-#define JP_FWD_RET_CASE_RET(_typeChar, _type, _retCode)                                                        \
-case _typeChar: { \
-JP_FWD_RET_CALL_JS \
-_retCode \
-[invocation setReturnValue:&ret];\
-break;  \
-}
-            
-#define JP_FWD_RET_CASE(_typeChar, _type, _typeSelector)   \
-JP_FWD_RET_CASE_RET(_typeChar, _type, _type ret = [[jsval toObject] _typeSelector];)   \
+        #define JP_FWD_RET_CALL_JS                                                     \
+        JSValue *jsval;                                                              \
+        [_JSMethodForwardCallLock lock];                                             \
+        jsval = [jsFunc callWithArguments:params];                                   \
+        [_JSMethodForwardCallLock unlock];                                           \
+        while (![jsval isNull] && ![jsval isUndefined] &&                            \
+        [jsval hasProperty:@"__isPerformInOC"]) {                             \
+        NSArray *args = nil;                                                       \
+        JSValue *cb = jsval[@"cb"];                                                \
+        if ([jsval hasProperty:@"sel"]) {                                          \
+        id callRet = callSelector(                                               \
+        ![jsval[@"clsName"] isUndefined] ? [jsval[@"clsName"] toString]      \
+        : nil,                              \
+        [jsval[@"sel"] toString], jsval[@"args"],                            \
+        ![jsval[@"obj"] isUndefined] ? jsval[@"obj"] : nil, NO);             \
+        args = @[ [_context[@"_formatOCToJS"]                                    \
+        callWithArguments:callRet ? @[ callRet ]                             \
+        : _formatOCToJSList(@[ _nilObj ])] ];      \
+        }                                                                          \
+        [_JSMethodForwardCallLock lock];                                           \
+        jsval = [cb callWithArguments:args];                                       \
+        [_JSMethodForwardCallLock unlock];                                         \
+        }
+                    
+        #define JP_FWD_RET_CASE_RET(_typeChar, _type, _retCode)                                                        \
+        case _typeChar: { \
+        JP_FWD_RET_CALL_JS \
+        _retCode \
+        [invocation setReturnValue:&ret];\
+        break;  \
+        }
+                    
+        #define JP_FWD_RET_CASE(_typeChar, _type, _typeSelector)   \
+        JP_FWD_RET_CASE_RET(_typeChar, _type, _type ret = [[jsval toObject] _typeSelector];)   \
 
-#define JP_FWD_RET_CODE_ID \
-id __autoreleasing ret = formatJSToOC(jsval); \
-if (ret == _nilObj ||   \
-([ret isKindOfClass:[NSNumber class]] && strcmp([ret objCType], "c") == 0 && ![ret boolValue])) ret = nil;  \
+        #define JP_FWD_RET_CODE_ID \
+        id __autoreleasing ret = formatJSToOC(jsval); \
+        if (ret == _nilObj ||   \
+        ([ret isKindOfClass:[NSNumber class]] && strcmp([ret objCType], "c") == 0 && ![ret boolValue])) ret = nil;  \
 
-#define JP_FWD_RET_CODE_POINTER    \
-void *ret; \
-id obj = formatJSToOC(jsval); \
-if ([obj isKindOfClass:[JPBoxing class]]) { \
-ret = [((JPBoxing *)obj) unboxPointer]; \
-}
-            
-#define JP_FWD_RET_CODE_CLASS    \
-Class ret;   \
-ret = formatJSToOC(jsval);
-            
-            
-#define JP_FWD_RET_CODE_SEL    \
-SEL ret;   \
-id obj = formatJSToOC(jsval); \
-if ([obj isKindOfClass:[NSString class]]) { \
-ret = NSSelectorFromString(obj); \
-}
+        #define JP_FWD_RET_CODE_POINTER    \
+        void *ret; \
+        id obj = formatJSToOC(jsval); \
+        if ([obj isKindOfClass:[JPBoxing class]]) { \
+        ret = [((JPBoxing *)obj) unboxPointer]; \
+        }
+                    
+        #define JP_FWD_RET_CODE_CLASS    \
+        Class ret;   \
+        ret = formatJSToOC(jsval);
+                    
+                    
+        #define JP_FWD_RET_CODE_SEL    \
+        SEL ret;   \
+        id obj = formatJSToOC(jsval); \
+        if ([obj isKindOfClass:[NSString class]]) { \
+        ret = NSSelectorFromString(obj); \
+        }
             
             JP_FWD_RET_CASE_RET('@', id, JP_FWD_RET_CODE_ID)
             JP_FWD_RET_CASE_RET('^', void*, JP_FWD_RET_CODE_POINTER)
